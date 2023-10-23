@@ -1,12 +1,15 @@
 package com.in28Minutes.rest.webservices.restfulwebservices.user;
 
 import jakarta.validation.Valid;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.*;
 
 @RestController
 public class UserResource {
@@ -24,14 +27,19 @@ public class UserResource {
 
 
 //    REST API for Single User
+//    http://localhost:8080/users
     @GetMapping("/users/{id}")
-    public User retrieveUser(@PathVariable Integer id){
+    public EntityModel<User> retrieveUser(@PathVariable Integer id){
         User user = service.findOne(id);
 //        Returning 404 if user is not found
         if(user == null){
             throw new UserNotFoundException("Id:-"+id);
         }
-        return user;
+//        Code for adding links to response
+        EntityModel<User> entityModel = EntityModel.of(user);
+        WebMvcLinkBuilder link = linkTo(methodOn(this.getClass()).retrieveAllUser());
+        entityModel.add(link.withRel("all-users"));
+        return entityModel;
     }
 
 
