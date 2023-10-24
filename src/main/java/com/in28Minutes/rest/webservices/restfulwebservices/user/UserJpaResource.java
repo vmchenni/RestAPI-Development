@@ -1,5 +1,6 @@
 package com.in28Minutes.rest.webservices.restfulwebservices.user;
 
+import com.in28Minutes.rest.webservices.restfulwebservices.jpa.PostRepository;
 import com.in28Minutes.rest.webservices.restfulwebservices.jpa.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.hateoas.EntityModel;
@@ -20,10 +21,13 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class UserJpaResource {
     private UserDaoService  service;
     private UserRepository repository;
-    public UserJpaResource(UserDaoService service,UserRepository repository) {
+
+    private PostRepository postRepository;
+    public UserJpaResource(UserDaoService service,UserRepository repository,PostRepository postRepository) {
         super();
         this.service = service;
         this.repository = repository;
+        this.postRepository= postRepository;
     }
 
 //    REST API for All users
@@ -72,5 +76,17 @@ public class UserJpaResource {
     @DeleteMapping("/jpa/users/{id}")
     public void deleteUser(@PathVariable Integer id){
         repository.deleteById(id);
+    }
+
+    //    REST API for Delete a User
+    @GetMapping("/jpa/users/{id}/posts")
+    public List<Post> retrievePostsForAUser(@PathVariable Integer id){
+        Optional<User> user;
+        user = repository.findById(id);
+//        Returning 404 if user is not found
+        if(user.isEmpty()){
+            throw new UserNotFoundException("Id:-"+id);
+        }
+        return user.get().getPosts();
     }
 }
